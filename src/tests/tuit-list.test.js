@@ -1,27 +1,63 @@
-import {Tuits} from "../components/tuits";
-import {screen, render} from "@testing-library/react";
-import {HashRouter} from "react-router-dom";
-import {findAllTuits} from "../services/tuits-service";
+import Tuits from "../components/tuits";
+import {screen} from "@testing-library/react";
+import {render}  from "@testing-library/react";
 import axios from "axios";
+import {HashRouter} from "react-router-dom";
+import {findAllTuits} from "../services/tuits-service"; 
 
-jest.mock('axios');
 
 const MOCKED_USERS = [
-  "alice", "bob", "charlie"
+  {username: 'emily', password: 'ffzz33d', email: 'emily@paris.com', _id: '101'},
+  {username: 'king', password: 'ffaa33d', email: 'emily@p.com', _id: '104'}
 ];
 
 const MOCKED_TUITS = [
-  "alice's tuit", "bob's tuit", "charlie's tuit"
+  {
+    _id: '1001',
+    postedBy: MOCKED_USERS[0],
+    tuit: "emily's says hi to king"
+  },
+  {
+    _id: '1002',
+    postedBy: MOCKED_USERS[1],
+    tuit: "king says hi to emily"
+  }
 ];
 
 test('tuit list renders static tuit array', () => {
-  // TODO: implement this
+  render(
+    <HashRouter>
+      <Tuits tuits={MOCKED_TUITS}/>
+    </HashRouter>
+  );
+  const linkElement = screen.getByText(/emily's says hi to king/i);
+  expect(linkElement).toBeInTheDocument();
 });
 
 test('tuit list renders async', async () => {
-  // TODO: implement this
-})
+  const tuits = await findAllTuits();
+  render(
+    <HashRouter>
+      <Tuits tuits={tuits}/>
+    </HashRouter>
+  );
+  const linkElement = screen.getByText(/hi bob/i);
+  expect(linkElement).toBeInTheDocument();
+}); 
 
 test('tuit list renders mocked', async () => {
-  // TODO: implement this
+  const mock = jest.spyOn(axios, 'get');
+  mock.mockImplementation(() =>
+                            Promise.resolve({ data: {tuits: MOCKED_TUITS} }));
+  const response = await findAllTuits();
+  const tuits = response.tuits;
+
+  render(
+    <HashRouter>
+      <Tuits tuits={tuits}/>
+    </HashRouter>
+  );
+  const linkElement = screen.getByText(/emily's says hi to king/i);
+  expect(linkElement).toBeInTheDocument();
+  mock.mockRestore();
 });
